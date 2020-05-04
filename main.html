@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-    <link rel="icon" href="logo.png">
+    <link rel="icon" href="./images/logo.png">
     <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
     <title>login or Signup Now!</title>
 </head>
@@ -14,7 +14,7 @@
     <nav class="navbar navbar-dark bg-dark">
         <span class="navbar-brand mb-1 h1 white">
             <div class="media">
-                <img src="logo.png" alt="Logo" class="mr-3" style="width: 140px; height: 100px;" >
+                <img src="./images/logo.png" alt="Logo" class="mr-3" style="width: 140px; height: 100px;" >
             </div> 
         </span>
         <span class="navbar-brand">
@@ -85,7 +85,7 @@
     <div class="container new-post text-center mt-5 mb-5">
         <div class="card bg-dark">
             <div class="card-body" id="post-form-body">
-                <p class="lead" style="color: white;">Create a new post here, ask a question or share some information with others.</p>
+                <p class="lead" style="color: white;">Create a new post here, ask a question or share some information with others</p>
                 <form id="post-form">
                     <div class="form-group mt-2 firstInput">
                         <label for="postTitleInput" style="color: white;"">Give your post a Title!</label>
@@ -105,6 +105,25 @@
                     </div>
                     <p class="lead" style="color: white;">Your all set, submit your post now!</p>
                     <Button type="button" class="btn btn-success" id="submitPostBtn">Post!</Button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="container new-comment text-center mt-5 mb-5">
+        <div class="card bg-dark">
+            <div class="card-body" id="post-comment-body">
+                <p class="lead" style="color: white;">Add a comment to a post here</p>
+                <form id="post-comment">
+                    <div class="form-group mt-2 firstInput">
+                        <label for="commentTitleInput" style="color: white;">Which Post Would You Like To Comment On?</label>
+                        <input type="text" class="form-control" id="commentTitleInput" placeholder="Post Title">
+                    </div>
+                    <div class="form-group mt-2 firstInput">
+                        <label for="commentBodyInput" style="color: white;">Whats your Comment?</label>
+                        <textarea type="text" class="form-control" id="commentBodyInput" placeholder="Comment"></textarea>
+                    </div>
+                    <button type="button" class="btn btn-success" id="submitCommentBtn">Comment!</button>
                 </form>
             </div>
         </div>

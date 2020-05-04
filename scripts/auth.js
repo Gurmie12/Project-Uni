@@ -41,22 +41,43 @@ const postBodyInput = document.getElementById('postBodyInput');
 const submitPostBtn = document.getElementById('submitPostBtn');
 
 //Comments components
-const commentInput = document.getElementById('commentTextInput');
-const submitCommentBtn = document.getElementById('submitCommentBtn');
+const commentTitleInput = document.getElementById('commentTitleInput');
+const commentBodyInput = document.getElementById('commentBodyInput');
+const submitComment = document.getElementById('submitCommentBtn');
 
 //Firebase database and authorization objects
 const auth = firebase.auth();
 const database = firebase.database();
 const userRef = database.ref('users');
 const postRef = database.ref('posts');
+let posts = [];
 
 
-
-submitCommentBtn.addEventListener('click', (e) =>{
+submitComment.addEventListener('click', (e) =>{
     e.preventDefault();
-    console.log(commentInput.value);
+    if(commentTitleInput.value === "" || commentBodyInput.value === ""){
+        showAlertComment("Please fill in all of the fields", 'alert-danger');
+    }else{
+        const commentTitle = commentTitleInput.value.replace(/ +/g, "").toLowerCase();
+        const curPost = posts[0][commentTitle];
+        
+        if(curPost.comments.includes("No comments")){
+            curPost.comments = [];
+            curPost.comments.push(commentBodyInput.value);
+        }else{
+            curPost.comments.push(commentBodyInput.value);
+        }
+        postRef.child(commentTitle).update(curPost);
+        clearCommentsInput();
+        showAlertComment("Comment added!", 'alert-success');
+    }
 })
 
+
+function clearCommentsInput(){
+    commentTitleInput.value = "";
+    commentBodyInput.value = "";
+}
 
 submitPostBtn.addEventListener('click', (e) =>{
     e.preventDefault();
@@ -68,14 +89,15 @@ submitPostBtn.addEventListener('click', (e) =>{
         }else{
             const tagsArr = postTagsInput.value.split(',');
             const newPost = {
-                title: postBodyInput.value,
+                title: postTitleInput.value,
                 subject: postSubjectInput.value,
                 tags: tagsArr,
                 body: postBodyInput.value,
-                comments: []
+                comments: ["No comments"]
             }
+            const apititle = newPost.title.replace(/ +/g, "").toLowerCase();
 
-            postRef.child(newPost.title).set(newPost)
+            postRef.child(apititle).set(newPost)
             .then(() =>{
                 clearPostInput();
                 showAlertPost("Post has been submited and published", "alert-success");
@@ -90,6 +112,8 @@ submitPostBtn.addEventListener('click', (e) =>{
 
 postRef.on('value', (snapshot) =>{
     addPost(snapshot.val());
+    posts = [];
+    posts.push(snapshot.val());
 })
 
 
@@ -212,6 +236,7 @@ function navUI(state){
     const bottom = document.querySelector('.bottom');
     const newPostDiv = document.querySelector('.new-post');
     const postContainer = document.querySelector('.posts-display');
+    const postCommentContainer = document.querySelector('.new-comment');
 
     if(state){
         navlogindiv.style.display = 'block';
@@ -221,11 +246,13 @@ function navUI(state){
         top.style.display = 'block';
         bottom.style.display = 'block';
 
-        welcomeDiv.style.display = 'none'
+        welcomeDiv.style.display = 'none';
 
-        newPostDiv.style.display = 'none'
+        newPostDiv.style.display = 'none';
 
         postContainer.style.display = 'none';
+
+        postCommentContainer.style.display = 'none';
 
     }else{
         navlogindiv.style.display = 'none';
@@ -235,11 +262,13 @@ function navUI(state){
         top.style.display = 'none';
         bottom.style.display = 'none';
 
-        welcomeDiv.style.display = 'block'
+        welcomeDiv.style.display = 'block';
 
-        newPostDiv.style.display = 'block'
+        newPostDiv.style.display = 'block';
 
         postContainer.style.display = 'block';
+
+        postCommentContainer.style.display = 'block';
 
     }
 }
@@ -277,6 +306,19 @@ function showAlertPost(message, className){
     }, 3000);
 }
 
+function showAlertComment(message, className){
+    const alert = document.createElement('div');
+    alert.className = "alert text-center " + className;
+    alert.appendChild(document.createTextNode(message));
+    const body = document.getElementById("post-comment-body")
+    const form = document.getElementById("post-comment");
+
+    body.insertBefore(alert, form);
+    setTimeout(() =>{
+        alert.remove();
+    }, 3000);
+}
+
 function clearPostInput(){
     postTitleInput.value = "";
     postSubjectInput.value = "";
@@ -285,30 +327,42 @@ function clearPostInput(){
 }
 
 function addPost(data){
-    const posts = Object.keys(data);
-    const postContainer = document.querySelector('.posts-display');
-    postContainer.innerHTML = "";
 
-    posts.map((post) =>{
-        const curPost = data[post];
-        const postDiv = document.createElement('div');
-        postDiv.className = "jumbotron mt-3";
-        postDiv.id = curPost.title;
-        postDiv.innerHTML = `
+    if(data === null){
+        
+    }else{
+        const posts = Object.keys(data);
+        const postContainer = document.querySelector('.posts-display');
+        postContainer.innerHTML = "";
 
-            <h1 class="display-4">${curPost.title}</h1>
-            <p class="lead">${curPost.subject}</p>
-            <p class="lead"> ${curPost.tags.map(tag =>{return tag;})}</p>
-            <hr class="my-4">
-            <P>${curPost.body}</P>
-            <button type="button" class="btn btn-dark comment" id="comment-${curPost.title}" data-toggle="modal" data-target="#comment-modal">Comment</button>
-            <div class="container comments mt-3">
-            </div>
+        posts.map((post) =>{
+            const curPost = data[post];
+            const postDiv = document.createElement('div');
+            postDiv.className = "jumbotron mt-3";
+            postDiv.id = curPost.title;
+            postDiv.innerHTML = `
 
-        `;
+                <h1 class="display-4">${curPost.title}</h1>
+                <p>${curPost.subject}</p>
+                <p> ${curPost.tags.map(tag =>{return " " + tag ;})}</p>
+                <P class="lead">${curPost.body}</P>
+                <hr class="my-4">
+                <div class="container mt-3">
+                    <p class="lead">Comments: </p>
+                    <ul class="list-group" id="comments-list">
+                        ${curPost.comments.map((comment, i) =>{
+                            return(
+                                `<li class="list-group-item" key=${i}>${comment}</li>`
+                            )
+                        })}
+                    </ul>
+                </div>
+            `;
 
-        postContainer.appendChild(postDiv);
-    })
+            postContainer.appendChild(postDiv);
+                    
+        })
+    }
 }
 
 
