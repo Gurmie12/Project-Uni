@@ -56,7 +56,7 @@ const postRef = database.ref('posts');
 let posts = [];
 
 
-
+//Even listener on keyups for the search option. Seeds filtered data into the display function
 filterSearch.addEventListener('keyup', (e) =>{
     if(e.target.value === ""){
         addPost(posts);
@@ -265,6 +265,7 @@ function navUI(state){
     const newPostDiv = document.querySelector('.new-post');
     const postContainer = document.querySelector('.posts-display');
     const postCommentContainer = document.querySelector('.new-comment');
+    const searchPosts = document.querySelector('.search-posts');
 
     if(state){
         navlogindiv.style.display = 'block';
@@ -282,6 +283,8 @@ function navUI(state){
 
         postCommentContainer.style.display = 'none';
 
+        searchPosts.style.display = 'none';
+
     }else{
         navlogindiv.style.display = 'none';
         accountdiv.style.display ='block';
@@ -297,6 +300,8 @@ function navUI(state){
         postContainer.style.display = 'block';
 
         postCommentContainer.style.display = 'block';
+
+        searchPosts.style.display = 'block';
 
     }
 }
