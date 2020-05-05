@@ -45,6 +45,9 @@ const commentTitleInput = document.getElementById('commentTitleInput');
 const commentBodyInput = document.getElementById('commentBodyInput');
 const submitComment = document.getElementById('submitCommentBtn');
 
+//Search Bar
+const filterSearch = document.getElementById('filterSearchInput');
+
 //Firebase database and authorization objects
 const auth = firebase.auth();
 const database = firebase.database();
@@ -53,13 +56,34 @@ const postRef = database.ref('posts');
 let posts = [];
 
 
+
+filterSearch.addEventListener('keyup', (e) =>{
+    if(e.target.value === ""){
+        addPost(posts);
+    }else{
+        let filtered = []
+        posts.forEach(post =>{
+            if(post.tags.includes(e.target.value.toLowerCase())){
+                filtered.push(post);
+            }
+        })
+        addPost(filtered);
+    }
+})
+
+
 submitComment.addEventListener('click', (e) =>{
     e.preventDefault();
     if(commentTitleInput.value === "" || commentBodyInput.value === ""){
         showAlertComment("Please fill in all of the fields", 'alert-danger');
     }else{
         const commentTitle = commentTitleInput.value.replace(/ +/g, "").toLowerCase();
-        const curPost = posts[0][commentTitle];
+        let curPost;
+        posts.forEach(post =>{
+            if(post.title.replace(/ +/g, "").toLowerCase() === commentTitle){
+                curPost = post;
+            }
+        })
         
         if(curPost.comments.includes("No comments")){
             curPost.comments = [];
@@ -111,9 +135,13 @@ submitPostBtn.addEventListener('click', (e) =>{
 
 
 postRef.on('value', (snapshot) =>{
-    addPost(snapshot.val());
     posts = [];
-    posts.push(snapshot.val());
+    const keys = Object.keys(snapshot.val());
+    keys.forEach(key =>{
+        posts.push(snapshot.val()[key]);
+    })
+
+    addPost(posts);
 })
 
 
@@ -327,46 +355,42 @@ function clearPostInput(){
 }
 
 function addPost(data){
-
-    if(data === null){
-        
+    if(data.length === 0){
+        const postContainer = document.querySelector('.posts-display');
+        postContainer.innerHTML = "";
+        postContainer.innerHTML = `
+            <div class="container text-center">
+                <h1 class="heading-4">There are no posts</h1>
+            </div>
+        `;
     }else{
-        const posts = Object.keys(data);
         const postContainer = document.querySelector('.posts-display');
         postContainer.innerHTML = "";
 
-        posts.map((post) =>{
-            const curPost = data[post];
+        data.forEach(post =>{
             const postDiv = document.createElement('div');
             postDiv.className = "jumbotron mt-3";
-            postDiv.id = curPost.title;
+            postDiv.id = post.title;
             postDiv.innerHTML = `
 
-                <h1 class="display-4">${curPost.title}</h1>
-                <p>${curPost.subject}</p>
-                <p> ${curPost.tags.map(tag =>{return " " + tag ;})}</p>
-                <P class="lead">${curPost.body}</P>
-                <hr class="my-4">
-                <div class="container mt-3">
-                    <p class="lead">Comments: </p>
-                    <ul class="list-group" id="comments-list">
-                        ${curPost.comments.map((comment, i) =>{
-                            return(
-                                `<li class="list-group-item" key=${i}>${comment}</li>`
-                            )
-                        })}
-                    </ul>
-                </div>
-            `;
+                    <h1 class="display-4">${post.title}</h1>
+                    <p>${post.subject}</p>
+                    <p>${post.tags.map(tag =>{return " " + tag ;})}</p>
+                    <P class="lead">${post.body}</P>
+                    <hr class="my-4">
+                    <div class="container mt-3">
+                        <p class="lead">Comments: </p>
+                        <ul class="list-group" id="comments-list">
+                            ${post.comments.map((comment,i) =>{
+                                return(
+                                    `<li class="list-group-item" key=${i}>${comment}</li>`
+                                )
+                            })}
+                        </ul>
+                    </div>
+                `;
 
             postContainer.appendChild(postDiv);
-                    
         })
     }
 }
-
-
-
-
-
-
