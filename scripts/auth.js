@@ -1,4 +1,6 @@
-//Init
+//Author: Gurman Brar
+//University Of Waterloo BME 24
+
 (function(){
     var firebaseConfig = {
     apiKey: "AIzaSyBAYCXhNbih56NkTY04FP6oY7jgGUJa2gQ",
@@ -15,7 +17,6 @@
   firebase.analytics();
 })();
 
-//Main page components
 const signupUsername = document.getElementById('signupModalUsername');
 const signupEmail = document.getElementById('signupModalEmail');
 const signupPassword = document.getElementById('signupModalPassword');
@@ -26,13 +27,10 @@ const loginEmail = document.getElementById('loginModalEmail');
 const loginPass = document.getElementById('loginModalPassword');
 const loginBtn = document.getElementById('loginModalBtn');
 
-//Nav bar components
 const logoutBtn = document.getElementById('logout-btn');
 const navlogindiv = document.querySelector('.nav-userBtns');
-const accountdiv = document.querySelector('.nav-accountButton');
 const logoutdiv = document.querySelector('.nav-logoutButton');
 
-//Posts page components
 const welcomeDiv = document.querySelector('.welcome');
 const postTitleInput = document.getElementById("postTitleInput");
 const postSubjectInput = document.getElementById("postSubjectInput");
@@ -40,23 +38,21 @@ const postTagsInput = document.getElementById("postTagsInput");
 const postBodyInput = document.getElementById('postBodyInput');
 const submitPostBtn = document.getElementById('submitPostBtn');
 
-//Comments components
 const commentTitleInput = document.getElementById('commentTitleInput');
 const commentBodyInput = document.getElementById('commentBodyInput');
 const submitComment = document.getElementById('submitCommentBtn');
 
-//Search Bar
 const filterSearch = document.getElementById('filterSearchInput');
+const filterSearchUni = document.getElementById('filterSearchUni');
 
-//Firebase database and authorization objects
 const auth = firebase.auth();
 const database = firebase.database();
 const userRef = database.ref('users');
 const postRef = database.ref('posts');
 let posts = [];
+let curUser;
 
 
-//Even listener on keyups for the search option. Seeds filtered data into the display function
 filterSearch.addEventListener('keyup', (e) =>{
     if(e.target.value === ""){
         addPost(posts);
@@ -64,6 +60,21 @@ filterSearch.addEventListener('keyup', (e) =>{
         let filtered = []
         posts.forEach(post =>{
             if(post.tags.includes(e.target.value.toLowerCase())){
+                filtered.push(post);
+            }
+        })
+        addPost(filtered);
+    }
+})
+
+
+filterSearchUni.addEventListener('keyup', (e) =>{
+    if(e.target.value === ""){
+        addPost(posts);
+    }else{
+        let filtered = [];
+        posts.forEach(post =>{
+            if(post.school.replace(/ +/g, "").toLowerCase().includes(e.target.value.replace(/ +/g, "").toLowerCase())){
                 filtered.push(post);
             }
         })
@@ -104,6 +115,7 @@ function clearCommentsInput(){
 }
 
 submitPostBtn.addEventListener('click', (e) =>{
+    console.log(curUser);
     e.preventDefault();
     if(postTitleInput.value === "" || postBodyInput.value === ""){
         showAlertPost("Please include a title and a body", "alert-danger");
@@ -117,7 +129,9 @@ submitPostBtn.addEventListener('click', (e) =>{
                 subject: postSubjectInput.value,
                 tags: tagsArr,
                 body: postBodyInput.value,
-                comments: ["No comments"]
+                comments: ["No comments"],
+                username: curUser.username,
+                school: curUser.school
             }
             const apititle = newPost.title.replace(/ +/g, "").toLowerCase();
 
@@ -135,25 +149,30 @@ submitPostBtn.addEventListener('click', (e) =>{
 
 
 postRef.on('value', (snapshot) =>{
-    posts = [];
-    const keys = Object.keys(snapshot.val());
-    keys.forEach(key =>{
-        posts.push(snapshot.val()[key]);
-    })
+    if(snapshot.val() === null){
+        posts = [];
+    }else{
+        posts = [];
+        const keys = Object.keys(snapshot.val());
+        keys.forEach(key =>{
+            posts.push(snapshot.val()[key]);
+        })
 
-    addPost(posts);
+        addPost(posts);
+    }
 })
-
 
 auth.onAuthStateChanged(user =>{
     if(user){
         navUI(false);
         matchUser(user);
-
+        accountModal();
+    
     }else{
         navUI(true);
     }
 })
+
 
 
 signupBtn.addEventListener('click', (e) =>{
@@ -191,7 +210,7 @@ logoutBtn.addEventListener('click', (e) =>{
 
     auth.signOut()
     .then(() =>{
-        // Add back login and signup buttons
+        null;
     })
     .catch(err =>{
         alert(err.message);
@@ -214,11 +233,6 @@ loginBtn.addEventListener('click', (e) =>{
         });
     }
 });
-
-
-
-
-
 
 function showAlertLogin(message, className){
     const alert = document.createElement('div');
@@ -269,7 +283,6 @@ function navUI(state){
 
     if(state){
         navlogindiv.style.display = 'block';
-        accountdiv.style.display ='none';
         logoutdiv.style.display = 'none';
 
         top.style.display = 'block';
@@ -287,7 +300,6 @@ function navUI(state){
 
     }else{
         navlogindiv.style.display = 'none';
-        accountdiv.style.display ='block';
         logoutdiv.style.display = 'block';
 
         top.style.display = 'none';
@@ -320,6 +332,7 @@ function matchUser(user){
         users.map(user =>{
             if(data[user].email === cur){
                 welcomeDiv.appendChild(document.createTextNode(data[user].username));
+                curUser = data[user];
             }
         })
     })
@@ -380,8 +393,11 @@ function addPost(data){
 
                     <h1 class="display-4">${post.title}</h1>
                     <p>${post.subject}</p>
-                    <p>${post.tags.map(tag =>{return " " + tag ;})}</p>
+                    <p>Tags: ${post.tags.map(tag =>{return " " + tag ;})}</p>
                     <P class="lead">${post.body}</P>
+                    <hr class="my-4">
+                    <p>By: ${post.username}</p>
+                    <p>School: ${post.school}</p>
                     <hr class="my-4">
                     <div class="container mt-3">
                         <p class="lead">Comments: </p>
