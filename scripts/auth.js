@@ -49,6 +49,8 @@ const auth = firebase.auth();
 const database = firebase.database();
 const userRef = database.ref('users');
 const postRef = database.ref('posts');
+
+
 let posts = [];
 let curUser;
 
@@ -93,6 +95,8 @@ submitComment.addEventListener('click', (e) =>{
         posts.forEach(post =>{
             if(post.title.replace(/ +/g, "").toLowerCase() === commentTitle){
                 curPost = post;
+            }else{
+                showAlertComment('No post was found with this title.', 'alert-danger');
             }
         })
         
@@ -115,7 +119,6 @@ function clearCommentsInput(){
 }
 
 submitPostBtn.addEventListener('click', (e) =>{
-    console.log(curUser);
     e.preventDefault();
     if(postTitleInput.value === "" || postBodyInput.value === ""){
         showAlertPost("Please include a title and a body", "alert-danger");
@@ -166,8 +169,6 @@ auth.onAuthStateChanged(user =>{
     if(user){
         navUI(false);
         matchUser(user);
-        accountModal();
-    
     }else{
         navUI(true);
     }
@@ -399,8 +400,8 @@ function addPost(data){
                     <p>By: ${post.username}</p>
                     <p>School: ${post.school}</p>
                     <hr class="my-4">
-                    <div class="container mt-3">
-                        <p class="lead">Comments: </p>
+                    <div class="container mt-3 text-center">
+                        <p class="mb-2">Comments: </p>
                         <ul class="list-group" id="comments-list">
                             ${post.comments.map((comment,i) =>{
                                 return(
