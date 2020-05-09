@@ -95,10 +95,11 @@ submitComment.addEventListener('click', (e) =>{
         posts.forEach(post =>{
             if(post.title.replace(/ +/g, "").toLowerCase() === commentTitle){
                 curPost = post;
-            }else{
-                showAlertComment('No post was found with this title.', 'alert-danger');
             }
         })
+        if(curPost === undefined){
+            showAlertComment('No post was found with this title.', 'alert-danger');
+        }
         
         if(curPost.comments.includes("No comments")){
             curPost.comments = [];
